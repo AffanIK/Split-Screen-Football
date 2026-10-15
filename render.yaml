@@ -1,0 +1,13 @@
+﻿# Render blueprint for the game server: a long-running Node process that holds
+# the players' WebSocket connections. The pages are hosted separately on Vercel.
+services:
+  - type: web
+    name: split-screen-football
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Split-Screen Football</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <!-- Sits exactly over the game rectangle; 1em = 8 game pixels. -->
+    <div id="stage">
+      <div id="hud" hidden>
+        <span class="name a" id="name-a">BLUE</span>
+        <span class="pips" id="pips-a"></span>
+        <span class="score a" id="score-a">0</span>
+        <span id="clock">3:00</span>
+        <span class="score b" id="score-b">0</span>
+        <span class="pips" id="pips-b"></span>
+        <span class="name b" id="name-b">ORANGE</span>
+      </div>
+      <!-- Arcade: super meters either side of the modifier panel, then each player's power-up chips. -->
+      <div id="arcade-hud" hidden>
+        <div class="meter a"><i id="meter-a"></i><span id="meter-a-label">SUPER</span></div>
+        <div id="mod">
+          <div id="mod-label"></div>
+          <div class="bar"><i id="mod-bar"></i></div>
+          <div id="grow"></div>
+        </div>
+        <div class="meter b"><i id="meter-b"></i><span id="meter-b-label">SUPER</span></div>
+      </div>
+      <div id="chips-a" class="chips"></div>
+      <div id="chips-b" class="chips right"></div>
+      <div id="banner" hidden>
+        <img id="banner-icon" alt="" />
+        <div>
+          <b id="banner-title"></b>
+          <span id="banner-text"></span>
+        </div>
+      </div>
+      <div id="emote-a" class="emote" hidden></div>
+      <div id="emote-b" class="emote right" hidden></div>
+      <div id="emote-c" class="emote centre" hidden></div>
+      <div id="practice-hud" hidden></div>
+      <div id="arrow" hidden></div>
+      <div id="signal" hidden><i></i><i></i><i></i><span></span></div>
+      <button id="mute" class="chip" title="Mute (M)">SOUND</button>
+
+      <div id="callout" hidden>
+        <div class="big"></div>
+        <div class="sub"></div>
+      </div>
+      <div id="count" hidden></div>
+      <div id="wait" hidden>
+        <div class="panel">
+          <h2 id="wait-title">PAUSED</h2>
+          <p id="wait-text"></p>
+        </div>
+      </div>
+
+      <section class="screen" data-screen="splash" hidden>
+        <div class="logo">
+          <div class="l1">SPLIT-SCREEN</div>
+          <div class="l2">FOOTBALL</div>
+        </div>
+        <p class="blink">CLICK TO START</p>
+        <p class="foot">TWO SCREENS. ONE PITCH. NO CLICKS.</p>
+      </section>
+
+      <section class="screen" data-screen="menu" hidden>
+        <div class="logo small">
+          <div class="l1">SPLIT-SCREEN</div>
+          <div class="l2">FOOTBALL</div>
+        </div>
+        <nav class="menu">
+          <button class="btn primary" data-act="create">CREATE MATCH</button>
+          <button class="btn alt" data-act="join">JOIN MATCH</button>
+          <button class="btn" data-act="practice">PRACTICE</button>
+          <button class="btn" data-act="howto">HOW TO PLAY</button>
+          <button class="btn" data-act="records">RECORDS</button>
+          <button class="btn" data-act="settings">SETTINGS</button>
+          <button class="btn" data-act="fullscreen">FULL SCREEN (F)</button>
+        </nav>
+      </section>
+
+      <section class="screen" data-screen="name" hidden>
+        <div class="panel">
+          <h2>YOUR NAME</h2>
+          <p>YOUR FRIEND WILL SEE THIS</p>
+          <input id="name-input" class="field" maxlength="10" autocomplete="off" spellcheck="false" aria-label="Your name" />
+          <button class="btn primary" data-act="name-ok">OK</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="records" hidden>
+        <div class="panel wide">
+          <h2>RECORDS</h2>
+          <p class="hint">KEPT ON THIS DEVICE</p>
+          <div class="records" id="records-list"></div>
+          <button class="btn" data-act="back">BACK</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="rules" hidden>
+        <div class="panel wide">
+          <h2>MATCH RULES</h2>
+          <p class="hint" id="rules-who"></p>
+          <div class="rules-form" id="rules-form"></div>
+          <button class="btn primary" data-act="back">DONE</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="join" hidden>
+        <div class="panel">
+          <h2>JOIN A MATCH</h2>
+          <p>ENTER YOUR FRIEND'S ROOM CODE</p>
+          <input id="code" maxlength="4" autocomplete="off" spellcheck="false" aria-label="Room code" />
+          <p class="error" id="join-error"></p>
+          <div class="row">
+            <button class="btn" data-act="back">BACK</button>
+            <button class="btn primary" data-act="join-go">JOIN</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="lobby" hidden>
+        <div class="panel wide">
+          <h2>MATCH LOBBY</h2>
+          <div class="row code-row">
+            <span>ROOM CODE</span>
+            <span id="lobby-code" class="code">----</span>
+            <button class="btn tiny" data-act="copy" id="copy">COPY LINK</button>
+            <button class="btn tiny" data-act="copy-watch" id="copy-watch">WATCH LINK</button>
+          </div>
+          <p class="hint" id="lobby-link"></p>
+          <div class="row" id="host-row">
+            <button class="btn tiny toggle" data-act="team-1" id="team-1">1 V 1</button>
+            <button class="btn tiny toggle" data-act="team-2" id="team-2">2 V 2</button>
+            <span class="gap"></span>
+            <button class="btn tiny toggle" data-act="format-match" id="format-match">MATCH</button>
+            <button class="btn tiny toggle" data-act="format-tournament" id="format-tournament">TOURNAMENT</button>
+          </div>
+          <div class="seats" id="seats"></div>
+          <p class="hint" id="watchers"></p>
+          <p class="rules-line" id="rules-line"></p>
+          <div class="row">
+            <button class="btn small" data-act="rules" id="rules-open">MATCH RULES</button>
+            <button class="btn small" data-act="swap" id="swap">SWAP SIDES</button>
+            <button class="btn small" data-act="watch" id="watch">WATCH</button>
+          </div>
+          <div class="row emotes" data-emotes></div>
+          <p class="status" id="lobby-status"></p>
+          <div class="row">
+            <button class="btn" data-act="leave">LEAVE</button>
+            <button class="btn alt" data-act="start-tournament" id="start-tournament">START TOURNAMENT</button>
+            <button class="btn primary" data-act="ready" id="ready">READY</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="bracket" hidden>
+        <div class="panel wide">
+          <h2 id="bracket-title">TOURNAMENT</h2>
+          <div class="bracket" id="bracket"></div>
+          <p class="status" id="bracket-status"></p>
+          <div class="row emotes" data-emotes></div>
+          <div class="row">
+            <button class="btn" data-act="leave">LEAVE</button>
+            <button class="btn" data-act="end-tournament" id="end-tournament">END TOURNAMENT</button>
+            <button class="btn primary" data-act="ready" id="bracket-ready">READY</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="howto" hidden>
+        <h2>HOW TO PLAY</h2>
+        <p>YOUR CURSOR IS YOUR FOOT. JUST MOVE IT.</p>
+        <div class="demos" id="demos"></div>
+        <div class="row">
+          <button class="btn" data-act="back">BACK</button>
+          <button class="btn alt" data-act="arcade">ARCADE GUIDE</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="arcade" hidden>
+        <h2>ARCADE GUIDE</h2>
+        <p>HIT A POWER-UP WITH THE BALL. IT GOES TO WHOEVER KICKED LAST.</p>
+        <div class="guide" id="guide"></div>
+        <div class="rules">
+          <p><b>SUPER METER</b> JUGGLES, CUSHIONS AND SAVES FILL IT. FULL = FIREBALL.</p>
+          <p><b>STUN</b> BLOCK A FIREBALL OR A FULL-POWER SHOT AND YOUR BOOT IS OUT.</p>
+          <p><b>PITCH</b> BUMPERS, TRAMPOLINES, PORTALS, AND TARGETS FOR HALF A METER.</p>
+          <p><b>EVENTS</b> NEW RULE EVERY 30 S. GOALS GROW. LAST 30 S: 2 BALLS, DOUBLE GOALS.</p>
+        </div>
+        <button class="btn" data-act="back">BACK</button>
+      </section>
+
+      <section class="screen" data-screen="settings" hidden>
+        <div class="panel">
+          <h2>SETTINGS</h2>
+          <label class="set"><span>SENSITIVITY</span><input type="range" id="set-sensitivity" min="0.3" max="3" step="0.05" /></label>
+          <label class="set"><span>EFFECTS</span><input type="range" id="set-sfx" min="0" max="1" step="0.05" /></label>
+          <label class="set"><span>MUSIC</span><input type="range" id="set-music" min="0" max="1" step="0.05" /></label>
+          <div class="set"><span>SCREEN SHAKE</span><button class="btn small toggle" id="set-shake"></button></div>
+          <div class="set"><span>FLASHES</span><button class="btn small toggle" id="set-flashes"></button></div>
+          <div class="set"><span>LOCK POINTER</span><button class="btn small toggle" id="set-lock"></button></div>
+          <div class="set"><span>EMOTES</span><button class="btn small toggle" id="set-emotes"></button></div>
+          <label class="set"><span>NAME</span><input id="set-name" class="field small" maxlength="10" autocomplete="off" spellcheck="false" /></label>
+          <button class="btn" data-act="back">BACK</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="pause" hidden>
+        <div class="panel">
+          <h2 id="pause-title">PAUSED</h2>
+          <p id="pause-text"></p>
+          <nav class="menu">
+            <button class="btn primary" data-act="resume">RESUME</button>
+            <button class="btn" data-act="settings">SETTINGS</button>
+            <button class="btn" data-act="leave" id="pause-leave">LEAVE</button>
+          </nav>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="fulltime" hidden>
+        <div class="panel wide">
+          <h2 class="banner" id="ft-banner">FULL TIME</h2>
+          <p class="ft-score" id="ft-score"></p>
+          <p id="ft-series"></p>
+          <div class="stats" id="ft-stats"></div>
+          <p class="news" id="ft-news"></p>
+          <p class="status" id="ft-status"></p>
+          <div class="row emotes" data-emotes></div>
+          <div class="row">
+            <button class="btn" data-act="leave">LEAVE</button>
+            <button class="btn primary" data-act="ready" id="ft-again">REMATCH</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="debug" hidden></div>
+    <script type="module" src="/src/client/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,1194 @@
+:root {
+  --navy: #05070f;
+  --panel: #141a3a;
+  --panel-2: #2b3364;
+  --ink: #f4f6ff;
+  --dim: #9aa3c7;
+  --blue: #3b82f6;
+  --blue-light: #8ab6ff;
+  --orange: #f6872f;
+  --orange-light: #ffc08a;
+  --yellow: #ffd23f;
+  --green: #57d977;
+  --red: #ff5c5c;
+  --px: 2px;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--navy);
+}
+
+canvas#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  image-rendering: pixelated;
+}
+
+canvas#game.playing {
+  cursor: none;
+}
+
+/* Everything here is sized in em, and 1em is 8 game pixels, so the interface
+   is built from the same size of pixel as the game. */
+#stage {
+  position: fixed;
+  left: var(--gx);
+  top: var(--gy);
+  width: var(--gw);
+  height: var(--gh);
+  overflow: hidden;
+  font: calc(var(--px) * 8) / 1.6 'Press Start 2P', monospace;
+  color: var(--ink);
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+}
+
+#stage [hidden] {
+  display: none !important;
+}
+
+h2 {
+  margin: 0;
+  font-size: 2em;
+  font-weight: normal;
+  line-height: 1.3;
+  text-shadow: 0.125em 0.125em 0 var(--navy);
+}
+
+p {
+  margin: 0;
+}
+
+/* --- screens --- */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5em;
+  background: rgba(5, 7, 15, 0.74);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.screen[data-screen='splash'] {
+  background: rgba(5, 7, 15, 0.5);
+  cursor: pointer;
+  gap: 3em;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9em;
+  min-width: 30em;
+  padding: 1.25em 2.25em;
+  background: var(--panel);
+  border: 0.25em solid var(--ink);
+  box-shadow: 0.5em 0.5em 0 rgba(0, 0, 0, 0.55);
+}
+
+.panel.wide {
+  min-width: 46em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25em;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  width: 22em;
+}
+
+.hint,
+.foot {
+  max-width: 44em;
+  color: var(--dim);
+}
+
+.status {
+  min-height: 1.6em;
+  color: var(--yellow);
+}
+
+.error {
+  min-height: 1.6em;
+  color: var(--red);
+}
+
+/* --- logo --- */
+
+.logo {
+  animation: drop 0.9s steps(14) both;
+  filter: drop-shadow(0.5em 0.5em 0 var(--navy));
+}
+
+.logo .l1 {
+  font-size: 2.5em;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+}
+
+/* Split down the middle, like the pitch. */
+.logo .l2 {
+  font-size: 7em;
+  line-height: 1.2;
+  background: linear-gradient(90deg, var(--blue) 50%, var(--orange) 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo.small {
+  animation: none;
+}
+
+.logo.small .l1 {
+  font-size: 1.5em;
+}
+
+.logo.small .l2 {
+  font-size: 4em;
+}
+
+.blink {
+  font-size: 1.5em;
+  color: var(--yellow);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes drop {
+  from {
+    transform: translateY(-30em);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  78% {
+    transform: translateY(-1.5em);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* --- buttons --- */
+
+.btn,
+.chip {
+  font: inherit;
+  text-transform: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.btn {
+  padding: 0.9em 1.4em;
+  background: var(--panel-2);
+  border: 0.25em solid var(--ink);
+  box-shadow: 0.375em 0.375em 0 var(--navy);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  outline: none;
+  border-color: var(--yellow);
+  transform: translate(-0.125em, -0.125em);
+  box-shadow: 0.5em 0.5em 0 var(--navy);
+}
+
+.btn:active {
+  transform: translate(0.25em, 0.25em);
+  box-shadow: 0.125em 0.125em 0 var(--navy);
+}
+
+.btn.primary {
+  background: var(--blue);
+}
+
+.btn.alt {
+  background: var(--orange);
+}
+
+.btn.small {
+  padding: 0.5em 0.9em;
+}
+
+.btn.toggle.on {
+  background: var(--green);
+  color: var(--navy);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+/* --- join --- */
+
+#code {
+  width: 6.5em;
+  padding: 0.3em 0 0.3em 0.35em;
+  font: inherit;
+  font-size: 3em;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--yellow);
+  background: var(--navy);
+  border: 0.085em solid var(--ink);
+  outline: none;
+}
+
+#code:focus {
+  border-color: var(--yellow);
+}
+
+/* --- lobby --- */
+
+.code {
+  font-size: 3em;
+  letter-spacing: 0.2em;
+  color: var(--yellow);
+  text-shadow: 0.085em 0.085em 0 var(--navy);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  width: 15em;
+  padding: 1em 0.5em;
+  background: var(--navy);
+  border: 0.25em solid var(--blue);
+}
+
+.card.b {
+  border-color: var(--orange);
+}
+
+.card .where {
+  color: var(--blue-light);
+}
+
+.card.b .where {
+  color: var(--orange-light);
+}
+
+.card .who {
+  font-size: 1.5em;
+}
+
+.card .state {
+  color: var(--dim);
+}
+
+.card .state.ok {
+  color: var(--green);
+}
+
+/* --- settings --- */
+
+.set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2em;
+  width: 30em;
+}
+
+.set input[type='range'] {
+  width: 14em;
+  accent-color: var(--yellow);
+}
+
+/* --- how to play --- */
+
+.demos {
+  display: grid;
+  grid-template-columns: repeat(3, 17em);
+  gap: 1.25em;
+}
+
+.demo {
+  padding: 0.5em;
+  background: var(--panel);
+  border: 0.25em solid var(--ink);
+}
+
+.demo canvas {
+  display: block;
+  width: 16em;
+  height: 8em;
+  image-rendering: pixelated;
+}
+
+.demo b {
+  display: block;
+  margin-top: 0.5em;
+  font-weight: normal;
+  color: var(--yellow);
+}
+
+.demo span {
+  display: block;
+  min-height: 3.2em;
+  color: var(--dim);
+}
+
+/* --- full time --- */
+
+.banner {
+  font-size: 3.5em;
+}
+
+.banner.win {
+  color: var(--yellow);
+  animation: blink 0.4s steps(1) 3;
+}
+
+.ft-score {
+  font-size: 2em;
+}
+
+.a {
+  color: var(--blue-light);
+}
+
+.b {
+  color: var(--orange-light);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 9em 16em 9em;
+  gap: 0.5em 0;
+}
+
+.stats .label {
+  color: var(--dim);
+}
+
+.stats .best {
+  color: var(--yellow);
+}
+
+/* --- in play --- */
+
+#hud {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.5em 1.25em;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.25em solid var(--ink);
+  border-top: 0;
+  white-space: nowrap;
+}
+
+#hud .score {
+  font-size: 2.5em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+#hud .name.me {
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 0.125em;
+  text-underline-offset: 0.3em;
+}
+
+#clock {
+  min-width: 5em;
+  padding: 0.4em 0.5em;
+  font-size: 1.5em;
+  text-align: center;
+  color: var(--yellow);
+  background: var(--navy);
+}
+
+#clock.late {
+  color: var(--red);
+}
+
+.pips {
+  color: var(--yellow);
+  letter-spacing: 0.1em;
+}
+
+/* --- arcade: meters, modifier panel, power-up chips, pickup banner --- */
+
+#arcade-hud {
+  position: absolute;
+  top: 5.25em;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-start;
+  gap: 1em;
+  white-space: nowrap;
+}
+
+.meter {
+  position: relative;
+  width: 15em;
+  height: 1.75em;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.125em solid var(--ink);
+  overflow: hidden;
+}
+
+.meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--blue);
+}
+
+.meter.b i {
+  inset: 0 0 0 auto;
+  background: var(--orange);
+}
+
+.meter span {
+  position: absolute;
+  inset: 0;
+  line-height: 1.5em;
+  text-align: center;
+  text-shadow: 0.125em 0.125em 0 var(--navy);
+}
+
+.meter.full i {
+  background: var(--yellow);
+  animation: blink 0.3s steps(1) infinite;
+}
+
+.meter.full span {
+  color: var(--navy);
+  text-shadow: none;
+}
+
+#mod {
+  width: 24em;
+  padding: 0.35em 0.5em;
+  text-align: center;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.125em solid var(--dim);
+}
+
+#mod.now {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+#mod.soon {
+  border-color: var(--ink);
+  animation: blink 0.5s steps(1) infinite;
+}
+
+.bar {
+  height: 0.5em;
+  margin: 0.25em 0;
+  background: var(--panel-2);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--yellow);
+}
+
+#grow {
+  color: var(--dim);
+}
+
+.chips {
+  position: absolute;
+  top: 7.75em;
+  left: calc(50% - 29em);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  width: 15.25em;
+}
+
+.chips.right {
+  left: calc(50% + 13.75em);
+}
+
+.chip-fx {
+  display: grid;
+  grid-template-columns: 2.4em 1fr auto;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.25em 0.4em;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.125em solid var(--ink);
+  white-space: nowrap;
+}
+
+.chip-fx img,
+#banner img,
+.guide img {
+  width: 2.375em;
+  height: 2.375em;
+  image-rendering: pixelated;
+}
+
+.chip-fx .bar {
+  grid-column: 1 / -1;
+  margin: 0;
+  height: 0.375em;
+}
+
+.chip-fx.bad {
+  border-color: var(--red);
+}
+
+.chip-fx.bad .bar i {
+  background: var(--red);
+}
+
+#banner {
+  position: absolute;
+  top: 13em;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.75em 1.25em;
+  background: rgba(5, 7, 15, 0.9);
+  border: 0.25em solid var(--yellow);
+  box-shadow: 0.375em 0.375em 0 rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  animation: slam 0.2s steps(4) both;
+}
+
+#banner b {
+  display: block;
+  font-size: 1.5em;
+  font-weight: normal;
+  color: var(--yellow);
+}
+
+#banner img[hidden] {
+  display: none;
+}
+
+/* --- arcade guide --- */
+
+.guide {
+  display: grid;
+  grid-template-columns: repeat(2, 34em);
+  gap: 0.6em 1.5em;
+  text-align: left;
+}
+
+.guide div {
+  display: grid;
+  grid-template-columns: 2.6em 9.5em 1fr;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.guide b {
+  font-weight: normal;
+  color: var(--yellow);
+}
+
+.guide span {
+  color: var(--dim);
+  white-space: normal;
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  max-width: 70em;
+  color: var(--dim);
+}
+
+.rules b {
+  font-weight: normal;
+  color: var(--yellow);
+}
+
+#practice-hud {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.6em 1.25em;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.25em solid var(--ink);
+  border-top: 0;
+  white-space: pre;
+}
+
+#arrow {
+  position: absolute;
+  bottom: 6em;
+  color: var(--yellow);
+  animation: blink 1.2s steps(1) infinite;
+}
+
+#arrow.to-right {
+  right: 1em;
+}
+
+#arrow.to-left {
+  left: 1em;
+}
+
+.chip {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  padding: 0.4em 0.6em;
+  background: rgba(5, 7, 15, 0.82);
+  border: 0.125em solid var(--dim);
+  pointer-events: auto;
+}
+
+.chip.off {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+
+#signal {
+  position: absolute;
+  top: 0.75em;
+  right: 8.5em;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25em;
+  height: 1.25em;
+}
+
+#signal i {
+  width: 0.5em;
+  background: var(--dim);
+}
+
+#signal i:nth-child(1) {
+  height: 40%;
+}
+
+#signal i:nth-child(2) {
+  height: 70%;
+}
+
+#signal i:nth-child(3) {
+  height: 100%;
+}
+
+#signal span {
+  position: absolute;
+  right: 2.75em;
+  bottom: -0.2em;
+  white-space: nowrap;
+}
+
+#signal[data-level='3'] i,
+#signal[data-level='2'] i:nth-child(-n + 2),
+#signal[data-level='1'] i:nth-child(1) {
+  background: var(--tint);
+}
+
+#callout {
+  position: absolute;
+  top: 46%;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+#callout .big {
+  font-size: 5em;
+  line-height: 1.2;
+  text-shadow:
+    0.08em 0.08em 0 var(--navy),
+    -0.04em -0.04em 0 var(--navy);
+  animation: slam 0.3s steps(6) both;
+}
+
+#callout .sub {
+  font-size: 1.5em;
+  text-shadow: 0.125em 0.125em 0 var(--navy);
+}
+
+@keyframes slam {
+  from {
+    transform: scale(3);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+#count {
+  position: absolute;
+  top: 28%;
+  left: 0;
+  right: 0;
+  font-size: 12em;
+  line-height: 1;
+  text-align: center;
+  color: var(--yellow);
+  text-shadow: 0.06em 0.06em 0 var(--navy);
+}
+
+#count.pop {
+  animation: slam 0.25s steps(5) both;
+}
+
+#wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 7, 15, 0.6);
+}
+
+/* --- developer tuning panel (not pixel styled) --- */
+
+#debug {
+  position: fixed;
+  top: 48px;
+  left: 8px;
+  width: 19rem;
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(8, 16, 24, 0.9);
+  color: #fff;
+  font: 12px system-ui, sans-serif;
+}
+
+#debug[hidden] {
+  display: none;
+}
+
+#debug h2 {
+  margin: 0.4rem 0;
+  font-size: 13px;
+  text-shadow: none;
+}
+
+#debug label {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr 2.6rem;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+#debug output {
+  text-align: right;
+}
+
+#debug pre {
+  margin: 0.6rem 0 0;
+  white-space: pre-wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .blink,
+  #arrow,
+  #callout .big,
+  #count.pop,
+  .banner.win {
+    animation: none;
+  }
+}
+
+/* --- late layout adjustments --- */
+
+#callout .sub {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  background: rgba(5, 7, 15, 0.8);
+}
+
+.chip-fx {
+  grid-template-columns: 2.4em 1fr auto;
+  grid-template-rows: auto auto;
+}
+
+.chip-fx img {
+  grid-row: 1 / 3;
+}
+
+.chip-fx .name {
+  grid-column: 2 / 4;
+  overflow: hidden;
+}
+
+.chip-fx .bar {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+}
+
+.chip-fx .secs {
+  grid-column: 3;
+  grid-row: 2;
+  color: var(--yellow);
+}
+
+.screen[data-screen='lobby'] .panel {
+  gap: 0.7em;
+  min-width: 52em;
+}
+
+.screen[data-screen='lobby'] .card {
+  padding: 0.6em 0.5em;
+  gap: 0.4em;
+}
+
+.screen[data-screen='arcade'] {
+  gap: 0.8em;
+}
+
+.guide {
+  grid-template-columns: repeat(2, 38em);
+  gap: 0.4em 1.5em;
+}
+
+.rules {
+  max-width: 78em;
+  gap: 0.3em;
+}
+/* --- keep announcements small and up in the sky, clear of the ball --- */
+
+#callout {
+  top: 14.25em;
+}
+
+#callout .big {
+  font-size: 2.25em;
+}
+
+/* Only a goal, when play has stopped, gets the big treatment. */
+#callout .big.large {
+  font-size: 4.5em;
+}
+
+#callout .sub {
+  font-size: 1em;
+}
+
+#banner {
+  top: 10.75em;
+  gap: 0.6em;
+  padding: 0.35em 0.75em;
+  border-width: 0.125em;
+  box-shadow: none;
+  background: rgba(5, 7, 15, 0.8);
+}
+
+#banner b {
+  font-size: 1em;
+}
+
+#banner span {
+  color: var(--dim);
+}
+
+#banner img {
+  width: 1.75em;
+  height: 1.75em;
+}
+/* --- names, emotes, rules, records --- */
+
+.field {
+  width: 13em;
+  padding: 0.4em 0.5em;
+  font: inherit;
+  font-size: 2em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--yellow);
+  background: var(--navy);
+  border: 0.125em solid var(--ink);
+  outline: none;
+}
+
+.field:focus {
+  border-color: var(--yellow);
+}
+
+.field.small {
+  width: 11em;
+  font-size: 1em;
+}
+
+.btn.tiny {
+  padding: 0.35em 0.6em;
+  border-width: 0.125em;
+  box-shadow: 0.25em 0.25em 0 var(--navy);
+}
+
+.emotes {
+  display: flex;
+  gap: 0.5em;
+}
+
+.emote {
+  position: absolute;
+  top: 0.75em;
+  left: calc(50% - 31em);
+  padding: 0.4em 0.7em;
+  color: var(--navy);
+  background: var(--ink);
+  border: 0.125em solid var(--navy);
+  box-shadow: 0.25em 0.25em 0 rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  animation: slam 0.15s steps(3) both;
+}
+
+.emote.right {
+  left: auto;
+  right: calc(50% - 31em);
+}
+
+.rules-line {
+  color: var(--ink);
+}
+
+.rules-form {
+  display: grid;
+  grid-template-columns: 11em 1fr;
+  gap: 0.55em 1em;
+  align-items: center;
+  text-align: left;
+}
+
+.rules-form .label,
+.records .label {
+  color: var(--dim);
+}
+
+.rules-form .opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+
+.screen[data-screen='rules'] .panel {
+  gap: 0.6em;
+  min-width: 70em;
+}
+
+.records {
+  display: grid;
+  grid-template-columns: 16em 20em;
+  gap: 0.5em 1.5em;
+  text-align: left;
+}
+
+.news {
+  min-height: 1.6em;
+  color: var(--green);
+}
+
+#hud .name {
+  max-width: 11em;
+  overflow: hidden;
+}
+/* --- Stage 1 layout fixes --- */
+
+/* The rules screen has eleven rows: keep them tight so the title and DONE both fit. */
+.screen[data-screen='rules'] .panel {
+  gap: 0.4em;
+  padding: 0.8em 2em;
+}
+
+.rules-form {
+  grid-template-columns: 15em 1fr;
+  gap: 0.3em 1em;
+}
+
+.rules-form .label {
+  white-space: nowrap;
+}
+
+/* Emote bubbles sit beside the scoreboard, clear of the signal and sound buttons. */
+.emote {
+  left: auto;
+  right: calc(50% + 17em);
+}
+
+.emote.right {
+  right: auto;
+  left: calc(50% + 17em);
+}
+
+/* An announced modifier is highlighted, not flashed. */
+#mod.soon {
+  animation: none;
+  color: var(--yellow);
+}
+/* --- Stage 2: seats, watchers, bracket --- */
+
+.screen[data-screen='lobby'] .panel {
+  gap: 0.55em;
+  padding: 0.9em 2em;
+}
+
+.gap {
+  width: 2em;
+}
+
+.seats {
+  display: grid;
+  grid-template-columns: repeat(2, 22em);
+  gap: 0.5em 1.5em;
+}
+
+.seat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.2em 1em;
+  padding: 0.5em 0.8em;
+  font: inherit;
+  text-transform: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: var(--navy);
+  border: 0.25em solid var(--blue);
+}
+
+.seat.b {
+  border-color: var(--orange);
+}
+
+.seat .where {
+  color: var(--blue-light);
+}
+
+.seat.b .where {
+  color: var(--orange-light);
+}
+
+.seat .who {
+  font-size: 1.5em;
+  text-align: right;
+}
+
+.seat .state {
+  grid-column: 1 / -1;
+  color: var(--dim);
+}
+
+.seat .state.ok {
+  color: var(--green);
+}
+
+.seat.empty {
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.seat.empty:hover {
+  border-color: var(--yellow);
+}
+
+.entrants {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5em;
+}
+
+.entrants span {
+  padding: 0.5em 0.8em;
+  background: var(--navy);
+  border: 0.125em solid var(--ink);
+}
+
+.emote.centre {
+  left: 0;
+  right: 0;
+  top: 16em;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.bracket {
+  display: flex;
+  gap: 2em;
+  align-items: center;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+}
+
+.round b {
+  font-weight: normal;
+  color: var(--dim);
+}
+
+.tie {
+  display: grid;
+  grid-template-columns: 11em 2em;
+  gap: 0.3em 0.5em;
+  padding: 0.5em 0.7em;
+  text-align: left;
+  background: var(--navy);
+  border: 0.125em solid var(--dim);
+}
+
+.tie.now {
+  border-color: var(--yellow);
+}
+
+.tie .won {
+  color: var(--green);
+}
+
+.tie .me {
+  text-decoration: underline;
+}

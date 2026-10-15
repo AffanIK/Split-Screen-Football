@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "2d-games": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/davila7/2d-games",
+      "sourceType": "well-known",
+      "computedHash": "ecf1e9025cf25d7a812e8c194362eae4d76b8f9e28d4469ac9b9276aeb4291b5",
+      "wellKnownDigest": "sha256:7c04e3e4801b486d89b2e4052e48a47d57f88b1252f30d00c2c6bd4325deaa58"
+    },
+    "game-art": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/davila7/game-art",
+      "sourceType": "well-known",
+      "computedHash": "76b832a95c377d1707e8fbaff2a219e2e3434774947b01d7861d9a80a859fdde",
+      "wellKnownDigest": "sha256:9d2b280d13392c62ffb2be05052c4aad1f0d6e76fc249aa96a60029593ac3b50"
+    },
+    "game-audio": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/davila7/game-audio",
+      "sourceType": "well-known",
+      "computedHash": "23731bda31412739267aabbecaba9bf13492393007f1952bd0d559451c6c808c",
+      "wellKnownDigest": "sha256:bbae82434beba5b7bc070d2ad3c94cf76cba1ae484b7fbf0c1ea884a54570886"
+    },
+    "game-design": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/davila7/game-design",
+      "sourceType": "well-known",
+      "computedHash": "ede7201a25dc279ac97803f9d3403c6e6a6df0f086e4b06ef31d854c5255ae1f",
+      "wellKnownDigest": "sha256:4d7cb91fd3dc26de49c35e523ec6805d3afcb14d1a79d02b545313283168a985"
+    },
+    "web-games": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/davila7/web-games",
+      "sourceType": "well-known",
+      "computedHash": "34294df1dc80b1e216bb14756347dc36cd237f7a1ffa4a917e3b67a7e4774d3b",
+      "wellKnownDigest": "sha256:d0922948384c50d483a1fd2c3fc7848e9f09b15eb67b65dae12174117102c82e"
+    }
+  }
+}
