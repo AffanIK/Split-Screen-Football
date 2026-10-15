@@ -3,10 +3,9 @@ import { networkInterfaces } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
 import { SERVER_PORT } from '../shared/constants';
-import type { ClientMsg, ServerMsg, Slot } from '../shared/protocol';
-import { parseCode } from '../shared/rules';
+import { connect } from './connection';
 import type { RoomOptions } from './room';
-import { Rooms, type Entry } from './rooms';
+import { Rooms } from './rooms';
 
 /**
  * This computer's address on the local network, so a player who opened the
@@ -23,82 +22,23 @@ export function lanAddress(): string | undefined {
   return found.find((a) => home.test(a)) ?? found[0];
 }
 
+/** The game server as a plain Node process: for local play, the tests and the soak run. */
 export function startServer(port = SERVER_PORT, opts: RoomOptions = {}) {
   // A plain web address as well as the socket, so a hosting service can check the server is up.
   const http = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/plain', 'access-control-allow-origin': '*' });
     res.end(req.url === '/health' ? 'ok' : 'split-screen football game server');
   });
+  // Any path is accepted, so the client's Cloudflare-style addresses work here too.
   const wss = new WebSocketServer({ server: http });
   http.listen(port);
   const rooms = new Rooms(opts);
 
   wss.on('connection', (ws) => {
-    let entry: Entry | null = null;
-    let slot: Slot = 0;
-    const send = (m: ServerMsg) => {
-      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(m));
-    };
-
-    const enter = (e: Entry, place: { slot: Slot; token: string }, rejoined: boolean) => {
-      entry = e;
-      slot = place.slot;
-      e.sends[slot] = send;
-      send({ type: 'joined', code: e.room.code, token: place.token, you: slot, lan: lanAddress() });
-      e.room.sync(slot, rejoined);
-      rooms.touch(e);
-    };
-
-    const detach = () => {
-      if (!entry) return;
-      const e = entry;
-      entry = null;
-      // A newer socket may already have taken this place over.
-      if (e.sends[slot] !== send) return;
-      e.sends[slot] = null;
-      return e;
-    };
-
-    ws.on('message', (raw) => {
-      let m: ClientMsg;
-      try {
-        m = JSON.parse(raw.toString());
-      } catch {
-        return;
-      }
-      if (!m || typeof m.type !== 'string') return;
-
-      if (m.type === 'create_room') {
-        if (entry) return;
-        const e = rooms.create();
-        enter(e, e.room.add(m)!, false);
-      } else if (m.type === 'join_room') {
-        if (entry) return;
-        const code = typeof m.code === 'string' ? parseCode(m.code) : null;
-        const e = code ? rooms.get(code) : undefined;
-        if (!e) return send({ type: 'error', reason: 'not_found' });
-        const back = typeof m.token === 'string' ? e.room.rejoin(m.token) : null;
-        if (back !== null) return enter(e, { slot: back, token: m.token! }, true);
-        const place = e.room.add(m);
-        if (!place) return send({ type: 'error', reason: 'full' });
-        enter(e, place, false);
-      } else if (entry) {
-        entry.room.onMessage(slot, m);
-        if (m.type === 'leave') {
-          const e = detach();
-          if (e) rooms.touch(e);
-        }
-      } else if (m.type === 'ping') {
-        send({ type: 'pong', t: m.t });
-      }
-    });
-
-    ws.on('close', () => {
-      const e = detach();
-      if (!e) return;
-      e.room.disconnect(slot);
-      rooms.touch(e);
-    });
+    const socket = { send: (d: string) => ws.send(d), isOpen: () => ws.readyState === WebSocket.OPEN };
+    const conn = connect(rooms, socket, { lan: lanAddress });
+    ws.on('message', (raw) => conn.onMessage(raw.toString()));
+    ws.on('close', () => conn.onClose());
   });
 
   return {

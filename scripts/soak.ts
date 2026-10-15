@@ -17,11 +17,22 @@ const TIMEOUT_MS = 180_000;
 const LOSSY = new Set(['handoff', 'handoff_ack', 'handoff_ok', 'ball_preview', 'view', 'foot']);
 const NEVER = 3_600_000;
 
-const server = startServer(PORT, {
-  resendMs: RESEND_MS,
-  // No clock, no stalling whistle: this run is only about the handoff.
-  rules: { matchMs: NEVER, stallMs: NEVER, countdownMs: 100 },
-});
+/**
+ * SOAK_URL points the run at a server that is already running (for example
+ * 
+pm run worker:dev, Cloudflare's local runtime) instead of starting one. That
+ * server uses its normal rules and resend timing, and its rooms cannot be inspected,
+ * so the run checks only what the clients can see and keeps to one ball.
+ */
+const REMOTE = process.env.SOAK_URL;
+const server = REMOTE
+  ? null
+  : startServer(PORT, {
+      resendMs: RESEND_MS,
+      // No clock, no stalling whistle: this run is only about the handoff.
+      rules: { matchMs: NEVER, stallMs: NEVER, countdownMs: 100 },
+    });
+const BASE = REMOTE ?? `ws://localhost:${PORT}`;
 let doubles = 0;
 let stopped = false;
 let secondBall = false;
@@ -39,7 +50,7 @@ function impair(type: string, deliver: () => void): void {
 }
 
 function makeBot(intent: Intent) {
-  const ws = new WebSocket(`ws://localhost:${PORT}`);
+  const ws = new WebSocket(intent.type === 'join' ? `${BASE}/ws/room/${intent.code}` : `${BASE}/ws/new`);
   const client = new MatchClient(
     (m: ClientMsg) =>
       impair(m.type, () => {
@@ -66,7 +77,7 @@ function makeBot(intent: Intent) {
 type Bot = ReturnType<typeof makeBot>;
 const bots: Bot[] = [makeBot({ type: 'create' })];
 
-const room = () => (bots[0].client.code ? server.rooms.get(bots[0].client.code)?.room : undefined);
+const room = () => (bots[0].client.code && server ? server.rooms.get(bots[0].client.code)?.room : undefined);
 /** How many copies of one ball exist across both clients. */
 const copies = (id: number) => bots.filter((b) => b.client.balls().some((ball) => ball.id === id)).length;
 
@@ -153,7 +164,8 @@ function finish(problem?: string): void {
 
   const failures: string[] = [];
   if (problem) failures.push(problem);
-  if (!r) failures.push('the room was never created');
+  if (!r && !REMOTE) failures.push('the room was never created');
+  if (REMOTE && copies(0) !== 1) failures.push(`ball 0: ${copies(0)} copies at the end, expected exactly 1`);
   if (doubles > 0) failures.push(`two copies of one ball existed ${doubles} time(s)`);
   for (const relay of r?.relays ?? []) {
     const n = copies(relay.id);
@@ -182,6 +194,6 @@ function finish(problem?: string): void {
   console.log(failures.length ? `FAIL\n - ${failures.join('\n - ')}` : 'PASS: no ball lost or duplicated');
 
   for (const bot of bots) bot.ws.terminate();
-  server.close();
+  server?.close();
   process.exit(failures.length ? 1 : 0);
 }

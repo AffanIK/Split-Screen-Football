@@ -21,9 +21,10 @@ export class Rooms {
     return this.rooms.size;
   }
 
-  create(): Entry {
-    let code = makeCode(this.opts.rng);
-    while (this.rooms.has(code)) code = makeCode();
+  /** Open a room. On Cloudflare the code is chosen before the room exists, so it can be passed in. */
+  create(fixed?: string): Entry {
+    let code = fixed ?? makeCode(this.opts.rng);
+    while (!fixed && this.rooms.has(code)) code = makeCode();
     const entry: Entry = { room: null as unknown as Room, sends: [], expiry: null };
     entry.room = new Room(code, (slot: Slot, m) => entry.sends[slot]?.(m), this.opts);
     this.rooms.set(code, entry);

@@ -17,7 +17,8 @@ export class Net {
   private pinger: ReturnType<typeof setInterval>;
 
   constructor(
-    private url: string,
+    /** Asked again on every reconnect, since the address can change once a room exists. */
+    private url: () => string,
     private onMessage: (m: ServerMsg) => void,
     private onOpen: () => void,
   ) {
@@ -39,7 +40,7 @@ export class Net {
   }
 
   private connect(): void {
-    const ws = new WebSocket(this.url);
+    const ws = new WebSocket(this.url());
     this.ws = ws;
     ws.onopen = () => {
       this.connected = true;

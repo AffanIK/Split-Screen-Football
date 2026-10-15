@@ -1,0 +1,14 @@
+﻿# The game server on Cloudflare Workers. Each room is a Durable Object.
+name = "split-screen-football"
+main = "src/worker/index.ts"
+compatibility_date = "2025-09-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "RoomObject"
+
+# Durable Objects on the free plan must use the SQLite-backed kind; the game
+# keeps nothing in storage, rooms live in memory while people are connected.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomObject"]

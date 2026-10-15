@@ -43,6 +43,14 @@ TypeScript everywhere. Client: Vite + raw Canvas 2D for the game, DOM for menus 
 - `npm run soak` — 500 handoffs across two balls in a 2 v 2 room with a watcher, 20% message loss and jitter (about 35 s); must print PASS
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run build` — production client bundle
+- `npm run worker:dev` — the game server in Cloudflare's local runtime on port 8787; `SOAK_URL=ws://127.0.0.1:8787 npm run soak` tests against it
+- `npm run worker:deploy` — deploy the game server to Cloudflare (needs `npx wrangler login`)
+
+## Deployment
+
+- **Pages:** Vercel (`vercel.json`), built with `VITE_GAME_SERVER` set to the game server's `wss://` address. Without it the pages look for a server on the same host at port 8787.
+- **Game server:** Cloudflare Workers with one Durable Object per room (`src/worker/index.ts`, `wrangler.toml`). Creating a match connects to `/ws/new`; joining or rejoining connects to `/ws/room/CODE`. The connection logic is shared with the Node server (`src/server/connection.ts`), which ignores the path. Render and Railway were tried first and both asked for a card; their config files (`render.yaml`, `railway.json`) remain in case a card is added later.
+- The worker has its own type-check (`tsconfig.worker.json`); `npm run typecheck` runs both.
 
 In the game: Esc opens the menu, M mutes, 1 to 6 send emotes, F toggles full screen, ` opens the developer tuning panel (with network delay and loss sliders in a match). A share link is `/?room=CODE`; add `&watch=1` to join as a watcher. In development the current match is on the browser console as `ssf.match` (used by scripted checks to place the ball or fill the meter).
 

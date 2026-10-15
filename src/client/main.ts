@@ -239,7 +239,12 @@ function startMatch(intent: Intent): void {
     sfx.fire();
   };
   match = client;
-  net = new Net(gameServerUrl(), onServer, () => client.open());
+  // A new match asks the server for a fresh room; anything after that goes to the room by its code.
+  const address = () => {
+    const code = client.code ?? (intent.type === 'join' ? intent.code : null);
+    return code ? `${gameServerUrl()}/ws/room/${code}` : `${gameServerUrl()}/ws/new`;
+  };
+  net = new Net(address, onServer, () => client.open());
   ui.show('lobby');
 }
 
