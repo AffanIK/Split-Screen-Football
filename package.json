@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "split-screen-football",
   "private": true,
   "version": "0.1.0",
@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "concurrently -k -n web,server -c green,blue \"vite\" \"tsx watch src/server/index.ts\"",
     "server": "tsx src/server/index.ts",
+    "start": "tsx src/server/index.ts",
     "build": "vite build",
     "test": "vitest run",
     "soak": "tsx scripts/soak.ts",
