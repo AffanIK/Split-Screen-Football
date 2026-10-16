@@ -8,7 +8,7 @@
     "server": "tsx src/server/index.ts",
     "start": "tsx src/server/index.ts",
     "build": "vite build",
-    "build:api": "esbuild src/vercel/ws.ts --bundle --platform=node --format=esm --target=node20 --external:ws --outfile=api/ws.js --banner:js=\"// Generated from src/vercel/ws.ts by npm run build:api. Do not edit.\"",
+    "build:api": "esbuild src/vercel/ws.ts --bundle --platform=node --format=esm --target=node20 --external:ws --outfile=game/server.js --banner:js=\"// Generated from src/vercel/ws.ts by npm run build:api. Do not edit.\"",
     "test": "vitest run",
     "soak": "tsx scripts/soak.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json",

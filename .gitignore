@@ -3,3 +3,6 @@ dist/
 .vercel/
 
 .wrangler/
+.vercel
+.env*
+game/node_modules/

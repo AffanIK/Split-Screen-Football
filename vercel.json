@@ -1,13 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "services": {
+    "web": { "root": "./", "framework": "vite" },
+    "game": { "root": "game/", "entrypoint": "server.js" }
+  },
   "rewrites": [
-    { "source": "/ws/(.*)", "destination": "/api/ws" },
-    { "source": "/health", "destination": "/api/ws" }
-  ],
-  "functions": {
-    "api/ws.js": { "maxDuration": 300 }
-  }
+    { "source": "/ws/(.*)", "destination": { "service": "game" } },
+    { "source": "/health", "destination": { "service": "game" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
 }
