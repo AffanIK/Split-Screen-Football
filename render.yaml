@@ -1,4 +1,4 @@
-﻿# Render blueprint for the game server: a long-running Node process that holds
+# Render blueprint for the game server: a long-running Node process that holds
 # the players' WebSocket connections. The pages are hosted separately on Vercel.
 services:
   - type: web

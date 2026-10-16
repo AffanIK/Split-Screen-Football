@@ -1,4 +1,4 @@
-﻿# The game server on Cloudflare Workers. Each room is a Durable Object.
+# The game server on Cloudflare Workers. Each room is a Durable Object.
 name = "split-screen-football"
 main = "src/worker/index.ts"
 compatibility_date = "2025-09-01"
