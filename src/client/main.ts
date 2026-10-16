@@ -249,13 +249,15 @@ function startMatch(intent: Intent): void {
 }
 
 /**
- * Where the game server is. A deployed build is told by VITE_GAME_SERVER (for
- * example wss://my-game.onrender.com); otherwise it is on the same computer as the page.
+ * Where the game server is: VITE_GAME_SERVER if set, else the site itself for a
+ * built (deployed) copy, else port 8787 on the same computer during development.
  */
 function gameServerUrl(): string {
   const set = import.meta.env.VITE_GAME_SERVER as string | undefined;
   if (set) return set;
   const secure = location.protocol === 'https:' ? 'wss' : 'ws';
+  // A built site (on Vercel) has its game server at the same address as its pages.
+  if (import.meta.env.PROD) return `${secure}://${location.host}`;
   return `${secure}://${location.hostname}:${SERVER_PORT}`;
 }
 

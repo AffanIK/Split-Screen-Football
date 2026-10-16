@@ -48,7 +48,9 @@ TypeScript everywhere. Client: Vite + raw Canvas 2D for the game, DOM for menus 
 
 ## Deployment
 
-- **Pages:** Vercel (`vercel.json`), built with `VITE_GAME_SERVER` set to the game server's `wss://` address. Without it the pages look for a server on the same host at port 8787.
+- **Everything on Vercel:** the pages, and the game server as a WebSocket Vercel Function (beta). `src/vercel/ws.ts` is bundled into `api/ws.js` by `npm run build:api`; **re-run it and commit `api/ws.js` after changing any server code**, since Vercel runs the bundle, not the source. `vercel.json` rewrites `/ws/*` and `/health` to it and caps connections at 300 s (the Hobby limit; the client rejoins). Built pages connect to their own site unless `VITE_GAME_SERVER` is set.
+- **Known weakness:** Vercel does not guarantee that two players, or one player reconnecting, reach the same function instance, and rooms live in instance memory. A join or rejoin that lands elsewhere gets "no match with that code". Fixing it properly means moving room state to Redis.
+- **Alternatives kept:** the Cloudflare Workers port below works and is tested locally, but sign-in was blocked from the office network.
 - **Game server:** Cloudflare Workers with one Durable Object per room (`src/worker/index.ts`, `wrangler.toml`). Creating a match connects to `/ws/new`; joining or rejoining connects to `/ws/room/CODE`. The connection logic is shared with the Node server (`src/server/connection.ts`), which ignores the path. Render and Railway were tried first and both asked for a card; their config files (`render.yaml`, `railway.json`) remain in case a card is added later.
 - The worker has its own type-check (`tsconfig.worker.json`); `npm run typecheck` runs both.
 
